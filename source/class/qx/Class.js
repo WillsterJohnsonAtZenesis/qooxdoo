@@ -250,17 +250,17 @@ qx.Bootstrap.define("qx.Class", {
           this.__addProperties(clazz, config.properties, true);
         }
 
-        //Process cached objects
-        if (config.objects) {
-          this.__addObjects(clazz, config.objects);
-        }
-
         // Include mixins
         // Must be the last here to detect conflicts
         if (config.include) {
           for (var i = 0, l = config.include.length; i < l; i++) {
             this.__addMixin(clazz, config.include[i], false);
           }
+        }
+
+        //Process cached objects
+        if (config.objects) {
+          this.__addObjects(clazz, config.objects);
         }
       }
       // If config has a 'extend' key but it's null or undefined
@@ -1312,6 +1312,22 @@ qx.Bootstrap.define("qx.Class", {
       }
 
       clazz.$$objects = objects;
+      if (qx.core.Environment.get("qx.debug")) {
+        clazz.$$flatObjectsNames = [];
+        if (clazz.superclass?.$$flatObjectsNames) {
+          clazz.$$flatObjectsNames.push(...clazz.superclass.$$flatObjectsNames);
+        }
+        if (clazz.$$includes) {
+          for (var i = 0; i < clazz.$$includes.length; i++) {
+            if (clazz.$$includes[i].$$objects) {
+              clazz.$$flatObjectsNames.push(
+                ...Object.keys(clazz.$$includes[i].$$objects)
+              );
+            }
+          }
+        }
+        clazz.$$flatObjectsNames.push(...Object.keys(objects));
+      }
     },
 
     /**

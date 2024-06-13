@@ -199,6 +199,13 @@ qx.Mixin.define("qx.core.MObjectId", {
 
       if (!qx.core.Environment.get("qx.core.Object.allowUndefinedObjectId")) {
         if (result === undefined) {
+          if (qx.core.Environment.get("qx.debug")) {
+            if (this.constructor.$$flatObjectsNames?.includes(id)) {
+              throw new Error(
+                `Top-level qxObject factory '${id}' in ${this.classname} [${this}] did not return a value`
+              );
+            }
+          }
           throw new Error(
             `Cannot find a QX Object in ${this.classname} [${this}] with id=${id}`
           );
