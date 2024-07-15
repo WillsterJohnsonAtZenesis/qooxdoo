@@ -81,9 +81,23 @@ qx.$$createdAt = function (obj, filename, lineNumber, column, verbose) {
       lineNumber: lineNumber,
       column: column
     };
-    var stack = new Error().stack;
-    if (verbose && !!stack) {
-      Object.assign(value, { stack: stack.split("\n").slice(2).map(line => line.trim()) });
+    if (verbose) {
+      var stack;
+      var res;
+      var promise = new Promise(r => (res = r))
+      (async () => {
+        await promise;
+        stack = new Error().stack;
+      })()
+      Object.defineProperty(value, "stack", {
+        get: function() {
+          if (res) {
+            res();
+            res = undefined;
+          }
+          return stack;
+        }
+      });
     }
     Object.defineProperty(obj, "$$createdAt", {
       value: value,
