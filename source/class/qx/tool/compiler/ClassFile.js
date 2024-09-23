@@ -624,7 +624,7 @@ qx.Class.define("qx.tool.compiler.ClassFile", {
           for (var j = 0; j < item.locations.length; j++) {
             t.addMarker(
               "symbol.unresolved#" + name,
-              item.locations[j].start,
+              item.locations[j],
               name
             );
           }
@@ -648,7 +648,7 @@ qx.Class.define("qx.tool.compiler.ClassFile", {
           if (!this.__analyser.getFont(fontName)) {
             t.addMarker(
               "fonts.unresolved#" + fontName,
-              this.__requiredFonts[fontName].loc.start,
+              this.__requiredFonts[fontName].loc,
               fontName
             );
           }
@@ -2867,28 +2867,41 @@ qx.Class.define("qx.tool.compiler.ClassFile", {
     /**
      * Adds a marker (eg warning or error)
      *
-     * @param msgId {String} the marker message ID (@see qx.tool.compiler.Marker)
-     * @param pos {Object||null} position map; may contain a Map containing
-     *  {line,column?}, or a Map {start:{line,column}, end: {line,column}}.
+     * @param {string} msgId the marker message ID (@see qx.tool.compiler.Marker)
+     * @param {{
+     *   start: {
+     *     line: number
+     *     column: number
+     *   }
+     *   end: {
+     *     line: number
+     *     column: number
+     *   }
+     * } | {
+     *   line: number
+     *   column: number
+     * } | null} pos position object
      */
-    addMarker(msgId, pos) {
+    addMarker(msgId, pos, ...args) {
       msgId = "qx.tool.compiler." + msgId;
+
+      const normalPosition = {
+        start: {
+          line: ("line" in pos ? pos?.line : pos?.start.line) ?? 0,
+          column: ("column" in pos ? pos?.column : pos?.start.column) ?? 0
+        },
+        end: {
+          line: ("line" in pos ? pos?.line : pos?.end.line) ?? 0,
+          column: ("column" in pos ? pos?.column : pos?.end.column) ?? 0
+        }
+      };
 
       let key = msgId;
       let fragment = msgId.indexOf("#");
       if (fragment > -1) {
         msgId = msgId.substring(0, fragment);
       } else {
-        // Give each marker a unique key based on msgId and the line; use this to suppress
-        //  multiple markers
-        key += "#";
-        if (pos) {
-          if (pos.line) {
-            key += pos.line;
-          } else if (pos.start && pos.start.line) {
-            key += pos.start.line;
-          }
-        }
+        key += `#${normalPosition.start.line}.${normalPosition.start.column}`;
       }
 
       if (this.__haveMarkersFor[key]) {
@@ -2897,33 +2910,10 @@ qx.Class.define("qx.tool.compiler.ClassFile", {
       this.__haveMarkersFor[key] = true;
 
       let marker = {
-        msgId: msgId
+        msgId: msgId,
+        pos: normalPosition,
+        args: args
       };
-
-      // Extract position
-      if (pos) {
-        if (pos.line) {
-          pos = { start: pos };
-        }
-        if (pos.start) {
-          let tmp = { line: pos.start.line };
-          if (pos.start.column) {
-            tmp.column = pos.start.column;
-          }
-          marker.pos = { start: tmp };
-          if (pos.end && pos.end.line) {
-            let tmp = { line: pos.end.line };
-            if (pos.end.column) {
-              tmp.column = pos.end.column;
-            }
-            marker.pos.end = tmp;
-          }
-        }
-      }
-      let args = qx.lang.Array.fromArguments(arguments, 2);
-      if (args.length) {
-        marker.args = args;
-      }
       this.__markers.push(marker);
     },
 
@@ -3015,7 +3005,7 @@ qx.Class.define("qx.tool.compiler.ClassFile", {
               })
             ) {
               // Temporarily disabled until Qooxdoo framework catches up
-              // t.addMarker("defer.unsafe", (opts && opts.location)||null, name);
+              // t.addMarker("defer.unsafe", opts?.location ?? null, name);
             }
           }
         }
