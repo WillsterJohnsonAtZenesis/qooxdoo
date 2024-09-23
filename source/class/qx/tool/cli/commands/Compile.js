@@ -1554,10 +1554,9 @@ Framework: v${await this.getQxVersion()} in ${await this.getQxPath()}`);
 
         const showMarkers = (classname, markers) => {
           if (markers) {
-            markers.forEach(function (marker) {
-              var str = qx.tool.compiler.Console.decodeMarker(marker);
-              Console.warn(classname + ": " + str);
-            });
+            markers.forEach(marker =>
+              qx.tool.compiler.Console.decodeMarker(classname, marker)
+            );
           }
         };
 
