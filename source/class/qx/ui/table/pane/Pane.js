@@ -569,10 +569,8 @@ qx.Class.define("qx.ui.table.pane.Pane", {
 
       for (var i = Math.abs(rowOffset) - 1; i >= 0; i--) {
         var rowElem = tableChildNodes[removeRowBase];
-        try {
+        if (tableBody.contains(rowElem)) {
           tableBody.removeChild(rowElem);
-        } catch (exp) {
-          break;
         }
       }
 
