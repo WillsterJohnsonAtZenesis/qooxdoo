@@ -1683,7 +1683,7 @@ qx.Class.define("qx.html.Element", {
      * @param direct {Boolean?false} Whether the values should be applied
      *    directly (without queuing)
      * @return {qx.html.Element} this object (for chaining support)
-     */ 
+     */
     setStyles(map, direct) {
       // inline calls to "set" because this method is very
       // performance critical!
@@ -2042,6 +2042,14 @@ qx.Class.define("qx.html.Element", {
      */
     getAttribute(key) {
       return this.__attribValues ? this.__attribValues[key] : null;
+    },
+
+    /**
+     * Get all attributes in a pojo.
+     * @return {Record<string, any>} the attributes
+     */
+    getAllAttributes() {
+      return { ...this.__attribValues };
     }
   },
 
