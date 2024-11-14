@@ -993,6 +993,15 @@ qx.Class.define("qx.html.Element", {
       return this._domNode;
     },
 
+    dangerouslySetInnerHtml(html) {
+      if (qx.core.Environment.get("qx.debug")) {
+        this.warn(
+          "Dangerously setting innerHTML - this is a security risk and should be avoided where possible"
+        );
+      }
+      this._setProperty("innerHtml", html);
+    },
+
     /**
      * Whether the element is focusable (or will be when created)
      *
