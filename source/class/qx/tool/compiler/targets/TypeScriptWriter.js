@@ -485,14 +485,19 @@ qx.Class.define("qx.tool.compiler.targets.TypeScriptWriter", {
         return "globalThis." + typename;
       }
 
-      typename = typename.replace("Promise<", "globalThis.Promise<");
+      typename = typename.replace(
+        /(?<!(\.|[a-zA-Z0-9_]))Promise</,
+        "globalThis.Promise<"
+      );
       typename = typename.replace(
         /(^|[^.a-zA-Z])(var|\*)([^.a-zA-Z]|$)/g,
         "$1any$3"
       );
 
-      // this will do for now, but it will fail on an expression like `Array<Record<string, any>>`
-      typename = typename.replace(/(?<!qx\.data\.)Array<([^>]+)>/g, "($1)[]");
+      typename = typename.replace(
+        /(?<!(\.|[a-zA-Z0-9_]))Array</g,
+        "globalThis.Array<"
+      );
 
       // We don't know the type
       // qx.tool.compiler.Console.error("Unknown type: " + typename);

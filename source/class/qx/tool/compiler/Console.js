@@ -162,6 +162,49 @@ qx.Class.define("qx.tool.compiler.Console", {
      */
     error(...args) {
       console.error(this.getColorOn() + args.join(" "));
+    },
+
+    /**
+     * Decodes a marker and prints it to the console
+     * @param {string} classname the name of the class
+     * @param {{
+     *   msgId: string;
+     *   start: {
+     *     line: Integer;
+     *     column?: Integer;
+     *   };
+     *   end?: {
+     *     line: Integer;
+     *     column?: Integer;
+     *   };
+     *   args?: any[];
+     * }} marker the marker
+     * @param {boolean} [showPosition] whether to include line/column info (default is true)
+     * @return {string}
+     */
+    decodeMarker(classname, marker, showPosition = true) {
+      var msg =
+        qx.tool.compiler.Console.MESSAGE_IDS[marker.msgId] || marker.msgId;
+      var type = msg.type ? msg.type + ": " : "";
+      var str = "";
+      var pos = marker.pos;
+      if (showPosition !== false && pos && pos.start && pos.start.line) {
+        let startLine = pos.start.line;
+        let startColumn = pos.start.column ?? 0;
+        let endLine = pos.end?.line ?? startLine;
+        let endColumn = pos.end?.column ?? startColumn;
+        str += `[${startLine},${startColumn}] [${endLine},${endColumn}] `;
+      }
+      try {
+        str += type + qx.lang.String.format(msg.message, marker.args);
+      } catch (e) {
+        throw new Error(`Unknown message id ${marker.msgId}.`);
+      }
+      if (this.isMachineReadable()) {
+        console.error(`##${classname}: ${str}`);
+      } else {
+        this.warn(`${classname}: ${str}`);
+      }
     }
   },
 
@@ -393,49 +436,25 @@ qx.Class.define("qx.tool.compiler.Console", {
     },
 
     /**
-     * Decodes a marker into a String description
-     * @param marker {Map} containing:
-     *    msgId {String}
-     *    start {Map} containing:
-     *        line {Integer}
-     *        column? {Integer}
-     *    end? {Map} containing:
-     *        line {Integer}
-     *        column? {Integer}
-     *    args? {Object[]}
-     * @param showPosition {Boolean?} whether to include line/column info (default is true)
-     * @return {String}
+     * Decodes a marker and prints it to the console
+     * @param {string} classname the name of the class
+     * @param {{
+     *   msgId: string;
+     *   start: {
+     *     line: Integer;
+     *     column?: Integer;
+     *   };
+     *   end?: {
+     *     line: Integer;
+     *     column?: Integer;
+     *   };
+     *   args?: any[];
+     * }} marker the marker
+     * @param {boolean} [showPosition] whether to include line/column info (default is true)
+     * @return {string}
      */
-    decodeMarker(marker, showPosition) {
-      var msg =
-        qx.tool.compiler.Console.MESSAGE_IDS[marker.msgId] || marker.msgId;
-      var type = msg.type ? msg.type + ": " : "";
-      var str = "";
-      var pos = marker.pos;
-      if (showPosition !== false && pos && pos.start && pos.start.line) {
-        str += "[" + pos.start.line;
-        if (pos.start.column) {
-          str += "," + pos.start.column;
-        }
-        if (
-          pos.end &&
-          pos.end.line &&
-          pos.end.line !== pos.start.line &&
-          pos.end.column !== pos.start.column
-        ) {
-          str += " to " + pos.end.line;
-          if (pos.end.column) {
-            str += "," + pos.end.column;
-          }
-        }
-        str += "] ";
-      }
-      try {
-        str += type + qx.lang.String.format(msg.message, marker.args || []);
-      } catch (e) {
-        throw new Error(`Unknown message id ${marker.msgId}.`);
-      }
-      return str;
+    decodeMarker(classname, marker, showPosition) {
+      return this.getInstance().decodeMarker(classname, marker, showPosition);
     }
   }
 });
