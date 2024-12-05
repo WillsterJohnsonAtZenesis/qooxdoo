@@ -2885,14 +2885,33 @@ qx.Class.define("qx.tool.compiler.ClassFile", {
     addMarker(msgId, pos, ...args) {
       msgId = "qx.tool.compiler." + msgId;
 
+      /**
+       * @param {typeof pos} pos
+       * @param {"line" | "column"} lineColumn
+       * @param {"start" | "end"} startEnd
+       * @returns {Integer | null}
+       */
+      const getFromPos = (pos, lineColumn, startEnd) => {
+        if (!pos) {
+          return null;
+        }
+        if (lineColumn in pos) {
+          return pos[lineColumn];
+        }
+        if (startEnd in pos && lineColumn in pos[startEnd]) {
+          return pos[startEnd][lineColumn];
+        }
+        return null;
+      };
+
       const normalPosition = {
         start: {
-          line: ("line" in pos ? pos?.line : pos?.start.line) ?? 0,
-          column: ("column" in pos ? pos?.column : pos?.start.column) ?? 0
+          line: getFromPos(pos, "line", "start") ?? 0,
+          column: getFromPos(pos, "column", "start") ?? 0
         },
         end: {
-          line: ("line" in pos ? pos?.line : pos?.end.line) ?? 0,
-          column: ("column" in pos ? pos?.column : pos?.end.column) ?? 0
+          line: getFromPos(pos, "line", "end") ?? 0,
+          column: getFromPos(pos, "column", "end") ?? 0
         }
       };
 
